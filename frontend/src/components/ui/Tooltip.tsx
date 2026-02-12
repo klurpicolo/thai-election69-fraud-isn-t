@@ -1,4 +1,4 @@
-import type { ViewMode, ElectionData } from "../../lib/types";
+import type { ViewMode, ElectionData, AreaData, Party } from "../../lib/types";
 
 interface Props {
   areaCode: string;
@@ -7,17 +7,18 @@ interface Props {
   data: ElectionData;
 }
 
+type GetParty = (code: string) => Party | undefined;
+
 export function Tooltip({ areaCode, rect, view, data }: Props) {
   const area = data.areas[areaCode];
   if (!area) return null;
 
-  const getParty = (code: string) => data.parties[code];
+  const getParty: GetParty = (code) => data.parties[code];
 
   const x = rect.left + rect.width / 2;
-  const tooltipHeight = 200; // estimated max height
+  const tooltipHeight = 200;
   const showBelow = rect.top < tooltipHeight + 16;
 
-  // Keep tooltip on screen: flip below if too close to top
   const style: React.CSSProperties = {
     position: "fixed",
     left: Math.max(16, Math.min(x, window.innerWidth - 180)),
@@ -29,7 +30,7 @@ export function Tooltip({ areaCode, rect, view, data }: Props) {
   return (
     <div
       style={style}
-      className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 pointer-events-none max-w-[340px] text-sm"
+      className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 pointer-events-none max-w-[420px] text-sm"
     >
       <div className="font-bold text-gray-900 mb-1.5 text-base">
         {area.areaName}
@@ -52,8 +53,8 @@ function ConstituencyTooltip({
   area,
   getParty,
 }: {
-  area: any;
-  getParty: (code: string) => any;
+  area: AreaData;
+  getParty: GetParty;
 }) {
   const c = area.constituency;
   const wp = getParty(c.winnerPartyCode);
@@ -89,12 +90,12 @@ function PartyListTooltip({
   area,
   getParty,
 }: {
-  area: any;
-  getParty: (code: string) => any;
+  area: AreaData;
+  getParty: GetParty;
 }) {
   return (
     <div className="space-y-0.5">
-      {area.partyList.topEntries.map((e: any, i: number) => {
+      {area.partyList.topEntries.map((e, i) => {
         const p = getParty(e.partyCode);
         return (
           <div key={e.partyCode} className="flex items-center gap-2">
@@ -120,8 +121,8 @@ function SpilloverTooltip({
   area,
   getParty,
 }: {
-  area: any;
-  getParty: (code: string) => any;
+  area: AreaData;
+  getParty: GetParty;
 }) {
   const s = area.spillover;
   const c = area.constituency;
@@ -132,39 +133,52 @@ function SpilloverTooltip({
   }
 
   const mp = getParty(s.matchedPartyCode);
+  const matchedName = mp?.name ?? s.matchedPartyName;
 
   return (
-    <div className="space-y-1.5">
-      <div>
-        <div className="text-xs text-gray-500">
-          ผู้ชนะ: {c.winnerCandidateName} ({wp?.name})
+    <div className="space-y-2">
+      {/* Two-column layout: left = winner, right = matched party-list */}
+      <div className="grid grid-cols-2 gap-3 text-xs">
+        {/* Left: สส.เขต (ผู้ชนะ) */}
+        <div className="space-y-1">
+          <div className="text-gray-400 font-medium">ผู้ชนะ สส.เขต</div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-3 h-3 rounded-sm inline-block shrink-0"
+              style={{ backgroundColor: wp?.color }}
+            />
+            <span className="font-medium text-gray-900">เบอร์ {s.candidateBallotNumber} {c.winnerCandidateName} จากพรรค{wp?.name}</span>
+          </div>
+          <div className="text-gray-600">
+            {c.winnerVotes.toLocaleString()} คะแนน ({c.winnerPct}%)
+          </div>
         </div>
-        <div className="mt-0.5">
-          <span className="text-gray-600">เบอร์ สส.เขต #{s.candidateBallotNumber}</span>{" "}
-          →{" "}
-          <span className="font-medium">
-            เบอร์ บช.รายชื่อ #{s.candidateBallotNumber} ({mp?.name || s.matchedPartyName})
-          </span>
+
+        {/* Right: บช.รายชื่อ (พรรคที่ตรงเบอร์) */}
+        <div className="space-y-1 border-l border-gray-200 pl-3">
+          <div className="text-gray-400 font-medium">บช.รายชื่อ ผู้รับโชค</div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-3 h-3 rounded-sm inline-block shrink-0"
+              style={{ backgroundColor: mp?.color ?? "#999" }}
+            />
+            <span className="font-medium text-gray-900">เบอร์ {s.candidateBallotNumber} {matchedName}</span>
+          </div>
+          <div className="text-gray-600">
+            คะแนนในเขต: <span className="font-medium">{s.matchedPartyPct}%</span>
+          </div>
+          <div className="text-gray-600">
+            ค่าเฉลี่ยประเทศ: {s.matchedPartyNationalAvgPct.toFixed(2)}%
+          </div>
+          <div className={`font-bold ${s.excessPct > 0 ? "text-red-600" : "text-green-600"}`}>
+            ส่วนต่าง: {s.excessPct > 0 ? "+" : ""}{s.excessPct.toFixed(2)}%
+            {" "}({s.excessVotes > 0 ? "+" : ""}{s.excessVotes} คะแนน)
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-x-3 text-xs">
-        <div className="text-gray-500">คะแนนในเขต:</div>
-        <div className="font-medium">{s.matchedPartyPct}%</div>
-        <div className="text-gray-500">ค่าเฉลี่ยประเทศ:</div>
-        <div>{s.matchedPartyNationalAvgPct.toFixed(2)}%</div>
-        <div className="text-gray-500">ส่วนเกิน:</div>
-        <div
-          className={`font-bold ${
-            s.excessPct > 0 ? "text-red-600" : "text-green-600"
-          }`}
-        >
-          {s.excessPct > 0 ? "+" : ""}
-          {s.excessPct.toFixed(2)} จุด ({s.excessVotes > 0 ? "+" : ""}
-          {s.excessVotes} คะแนน)
-        </div>
-      </div>
+
       {s.isSuspicious && (
-        <div className="text-red-600 text-xs font-bold bg-red-50 rounded px-2 py-1 mt-1">
+        <div className="text-red-600 text-xs font-bold bg-red-50 rounded px-2 py-1">
           น่าสงสัย หรือไม่?: พรรคเล็กได้คะแนนเกินปกติ ตรงกับเบอร์ผู้ชนะ สส.เขต
         </div>
       )}
