@@ -5,6 +5,7 @@ import { ElectionMap } from "./components/map/ElectionMap";
 import { ViewToggle } from "./components/ui/ViewToggle";
 import { Tooltip } from "./components/ui/Tooltip";
 import { Legend } from "./components/ui/Legend";
+import { About } from "./components/ui/About";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -19,9 +20,10 @@ function useIsMobile() {
 export default function App() {
   const { data, loading } = useElectionData();
   const [view, setView] = useState<ViewMode>("spillover");
-  const [usePartyColor, setUsePartyColor] = useState(false);
+  const [usePartyColor, setUsePartyColor] = useState(true);
   const isMobile = useIsMobile();
   const [panelOpen, setPanelOpen] = useState(!isMobile);
+  const [showAbout, setShowAbout] = useState(false);
   const [hovered, setHovered] = useState<{
     areaCode: string;
     rect: DOMRect;
@@ -53,6 +55,10 @@ export default function App() {
     );
   }
 
+  if (showAbout) {
+    return <About onBack={() => setShowAbout(false)} />;
+  }
+
   return (
     <div className="h-screen w-screen overflow-hidden relative">
       {/* Map fills the entire viewport */}
@@ -68,9 +74,21 @@ export default function App() {
       <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-24px)]">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-4 py-3 pointer-events-auto">
           <div className="flex items-start justify-between gap-2">
-            <h1 className="text-base font-bold text-gray-900 leading-tight">
-              Thailand Election 69 อภินิหาร หรือไม่?
-            </h1>
+            <div>
+              <h1 className="text-base font-bold text-gray-900 leading-tight">
+                Thailand Election 69 อภินิหาร หรือไม่?
+              </h1>
+              <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
+                นี้เป็นเพียงการวิเคราะห์ข้อมูล ไม่ได้ชี้นำหรือกล่าวหาใคร
+                {" "}
+                <button
+                  onClick={() => setShowAbout(true)}
+                  className="text-indigo-500 hover:text-indigo-700 underline"
+                >
+                  เกี่ยวกับ
+                </button>
+              </p>
+            </div>
             <button
               onClick={() => setPanelOpen((v) => !v)}
               className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors text-sm"
