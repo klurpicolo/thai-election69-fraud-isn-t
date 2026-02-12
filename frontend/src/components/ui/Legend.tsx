@@ -20,30 +20,42 @@ const MAJOR_PARTIES = [
 ];
 
 export function Legend({ view, data, usePartyColor, onTogglePartyColor }: Props) {
-  if (view === "spillover") {
-    return (
-      <SpilloverLegend
-        usePartyColor={usePartyColor}
-        onToggle={onTogglePartyColor}
-      />
-    );
-  }
+  const isSpillover = view === "spillover";
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
-      {MAJOR_PARTIES.map((code) => {
-        const party = data.parties[code];
-        if (!party) return null;
-        return (
-          <div key={code} className="flex items-center gap-1.5 text-xs">
-            <span
-              className="w-3 h-3 rounded-sm inline-block border border-gray-200"
-              style={{ backgroundColor: party.color }}
-            />
-            <span className="text-gray-700">{party.name}</span>
-          </div>
-        );
-      })}
+    <div className="grid">
+      {/* Both legends overlap in the same grid cell; only the active one is visible */}
+      <div
+        className={`col-start-1 row-start-1 transition-opacity ${
+          isSpillover ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <SpilloverLegend
+          usePartyColor={usePartyColor}
+          onToggle={onTogglePartyColor}
+        />
+      </div>
+      <div
+        className={`col-start-1 row-start-1 flex items-center transition-opacity ${
+          !isSpillover ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="flex flex-wrap gap-3 justify-center">
+          {MAJOR_PARTIES.map((code) => {
+            const party = data.parties[code];
+            if (!party) return null;
+            return (
+              <div key={code} className="flex items-center gap-1.5 text-xs">
+                <span
+                  className="w-3 h-3 rounded-sm inline-block border border-gray-200"
+                  style={{ backgroundColor: party.color }}
+                />
+                <span className="text-gray-700">{party.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

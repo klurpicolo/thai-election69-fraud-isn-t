@@ -9,7 +9,7 @@ import { Header } from "./components/ui/Header";
 
 export default function App() {
   const { data, loading } = useElectionData();
-  const [view, setView] = useState<ViewMode>("constituency");
+  const [view, setView] = useState<ViewMode>("spillover");
   const [usePartyColor, setUsePartyColor] = useState(false);
   const [hovered, setHovered] = useState<{
     areaCode: string;
