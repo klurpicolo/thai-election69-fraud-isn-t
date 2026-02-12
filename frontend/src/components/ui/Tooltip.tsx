@@ -165,7 +165,7 @@ function SpilloverTooltip({
       </div>
       {s.isSuspicious && (
         <div className="text-red-600 text-xs font-bold bg-red-50 rounded px-2 py-1 mt-1">
-          น่าสงสัย: พรรคเล็กได้คะแนนเกินปกติ ตรงกับเบอร์ผู้ชนะ สส.เขต
+          น่าสงสัย หรือไม่?: พรรคเล็กได้คะแนนเกินปกติ ตรงกับเบอร์ผู้ชนะ สส.เขต
         </div>
       )}
       {!s.isSmallParty && (

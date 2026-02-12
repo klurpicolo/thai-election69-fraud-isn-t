@@ -169,7 +169,7 @@ for (const areaMeta of commonData.areas) {
         (matchedPct - natAvg) / 100 * plArea.goodVotes
       ),
       isSmallParty: isSmall,
-      isSuspicious: isSmall && matchedPct - natAvg > 0,
+      isSuspicious: isSmall && matchedPct - natAvg > 0.5,
     };
   }
 
