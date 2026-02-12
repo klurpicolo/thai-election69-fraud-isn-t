@@ -7,12 +7,13 @@ interface Props {
   onTogglePartyColor: () => void;
 }
 
-// Top parties by seat count for constituency/partyList legends
+// Top parties for legend display
 const MAJOR_PARTIES = [
-  "PARTY-0046",
-  "PARTY-0009",
-  "PARTY-0037",
-  "PARTY-0027",
+  "PARTY-0046", // ประชาชน
+  "PARTY-0009", // เพื่อไทย
+  "PARTY-0037", // ภูมิใจไทย
+  "PARTY-0027", // ประชาธิปัตย์
+  "PARTY-0042", // กล้าธรรม
   "PARTY-0006",
   "PARTY-0043",
   "PARTY-0033",

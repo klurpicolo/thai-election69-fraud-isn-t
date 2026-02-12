@@ -1,10 +1,11 @@
 ### Raw data
 
 https://static-ectreport69.ect.go.th/data/data/refs/info_party_overview.json
-
 https://stats-ectreport69.ect.go.th/data/records/stats_party.json
 
+
 ### Reference
+https://www.thaipbs.or.th/election69/result/en/geo?region=all&view=area
 https://github.com/Pethon/election_69_analyzer
 https://github.com/smiley159/election-69
 https://drive.google.com/drive/folders/1Um_xLk5kmzX9VSSTJ_jS9YcJ8GuvBy7J?usp=drive_link

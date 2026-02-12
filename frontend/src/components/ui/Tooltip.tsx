@@ -14,14 +14,15 @@ export function Tooltip({ areaCode, rect, view, data }: Props) {
   const getParty = (code: string) => data.parties[code];
 
   const x = rect.left + rect.width / 2;
-  const y = rect.top - 8;
+  const tooltipHeight = 200; // estimated max height
+  const showBelow = rect.top < tooltipHeight + 16;
 
-  // Keep tooltip on screen
+  // Keep tooltip on screen: flip below if too close to top
   const style: React.CSSProperties = {
     position: "fixed",
-    left: Math.min(x, window.innerWidth - 320),
-    top: Math.max(y, 10),
-    transform: "translate(-50%, -100%)",
+    left: Math.max(16, Math.min(x, window.innerWidth - 180)),
+    top: showBelow ? rect.bottom + 8 : rect.top - 8,
+    transform: showBelow ? "translateX(-50%)" : "translate(-50%, -100%)",
     zIndex: 50,
   };
 

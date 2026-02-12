@@ -51,6 +51,15 @@ for (const [code, votes] of Object.entries(plVotesByParty)) {
   nationalAvg[code] = ((votes as number) / totalPlGoodVotes) * 100;
 }
 
+// ── Big parties (not subject to spillover analysis) ─────────────────
+const BIG_PARTIES = new Set([
+  "PARTY-0046", // ประชาชน
+  "PARTY-0009", // เพื่อไทย
+  "PARTY-0037", // ภูมิใจไทย
+  "PARTY-0027", // ประชาธิปัตย์
+  "PARTY-0042", // กล้าธรรม
+]);
+
 // ── Build party output ──────────────────────────────────────────────
 const parties: Record<string, any> = {};
 for (const p of partyData.parties) {
@@ -61,7 +70,7 @@ for (const p of partyData.parties) {
     nameEn: p.nameEn || "",
     color: p.colorPrimary || "#999999",
     nationalAvgPct: +(nationalAvg[p.code] || 0).toFixed(4),
-    isSmall: (nationalAvg[p.code] || 0) < 2,
+    isSmall: !BIG_PARTIES.has(p.code),
   };
 }
 
@@ -147,7 +156,7 @@ for (const areaMeta of commonData.areas) {
     );
     const matchedPct = plEntry?.votePercent || 0;
     const natAvg = nationalAvg[matchedPartyCode] || 0;
-    const isSmall = natAvg < 2;
+    const isSmall = !BIG_PARTIES.has(matchedPartyCode);
 
     spillover = {
       candidateBallotNumber: ballotNumber,

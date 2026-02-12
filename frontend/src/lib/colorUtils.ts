@@ -48,7 +48,7 @@ export function getAreaColor(
       const s = area.spillover;
       const partyColor =
         data.parties[area.constituency.winnerPartyCode]?.color ?? "#999999";
-      if (s.excessPct <= 0) {
+      if (!s || s.excessPct <= 0) {
         // slightly more visible tint or near-white
         return usePartyColor ? interpolateColor("#FFFFFF", partyColor, 0.25) : "#FAFAFA";
       }

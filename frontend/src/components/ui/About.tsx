@@ -66,6 +66,16 @@ export function About({ onBack }: Props) {
           <ul className="space-y-2">
             <li>
               <a
+                href="https://www.thaipbs.or.th/election69/result/en/geo?region=all&view=area"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-indigo-600 hover:text-indigo-800 underline break-all"
+              >
+                Thai PBS — Election 69 Results Map
+              </a>
+            </li>
+            <li>
+              <a
                 href="https://github.com/Pethon/election_69_analyzer"
                 target="_blank"
                 rel="noopener noreferrer"
