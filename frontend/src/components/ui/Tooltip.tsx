@@ -71,15 +71,15 @@ function ConstituencyTooltip({
         </div>
         <div className="text-gray-500 text-xs">{wp?.name}</div>
         <div className="text-gray-700 text-xs">
-          {c.winnerVotes.toLocaleString()} votes ({c.winnerPct}%)
+          {c.winnerVotes.toLocaleString()} คะแนน ({c.winnerPct}%)
         </div>
       </div>
       <div className="text-gray-500 text-xs border-t pt-1 mt-1">
-        <div>Runner-up: {c.runnerUpCandidateName} ({rp?.name})</div>
+        <div>อันดับ 2: {c.runnerUpCandidateName} ({rp?.name})</div>
         <div>{c.runnerUpVotes.toLocaleString()} ({c.runnerUpPct}%)</div>
       </div>
       <div className="text-gray-400 text-xs">
-        Margin: {c.margin} pts · Turnout: {c.turnout}%
+        ห่าง: {c.margin} จุด · ผู้มาใช้สิทธิ: {c.turnout}%
       </div>
     </div>
   );
@@ -128,7 +128,7 @@ function SpilloverTooltip({
   const wp = getParty(c.winnerPartyCode);
 
   if (!s) {
-    return <div className="text-gray-500">No spillover data</div>;
+    return <div className="text-gray-500">ไม่มีข้อมูลกระสุนหล่น</div>;
   }
 
   const mp = getParty(s.matchedPartyCode);
@@ -137,40 +137,40 @@ function SpilloverTooltip({
     <div className="space-y-1.5">
       <div>
         <div className="text-xs text-gray-500">
-          Winner: {c.winnerCandidateName} ({wp?.name})
+          ผู้ชนะ: {c.winnerCandidateName} ({wp?.name})
         </div>
         <div className="mt-0.5">
-          <span className="text-gray-600">Ballot #{s.candidateBallotNumber}</span>{" "}
+          <span className="text-gray-600">เบอร์ สส.เขต #{s.candidateBallotNumber}</span>{" "}
           →{" "}
           <span className="font-medium">
-            PL #{s.candidateBallotNumber} ({mp?.name || s.matchedPartyName})
+            เบอร์ บช.รายชื่อ #{s.candidateBallotNumber} ({mp?.name || s.matchedPartyName})
           </span>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-x-3 text-xs">
-        <div className="text-gray-500">Area vote:</div>
+        <div className="text-gray-500">คะแนนในเขต:</div>
         <div className="font-medium">{s.matchedPartyPct}%</div>
-        <div className="text-gray-500">National avg:</div>
+        <div className="text-gray-500">ค่าเฉลี่ยประเทศ:</div>
         <div>{s.matchedPartyNationalAvgPct.toFixed(2)}%</div>
-        <div className="text-gray-500">Excess:</div>
+        <div className="text-gray-500">ส่วนเกิน:</div>
         <div
           className={`font-bold ${
             s.excessPct > 0 ? "text-red-600" : "text-green-600"
           }`}
         >
           {s.excessPct > 0 ? "+" : ""}
-          {s.excessPct.toFixed(2)} pts ({s.excessVotes > 0 ? "+" : ""}
-          {s.excessVotes} votes)
+          {s.excessPct.toFixed(2)} จุด ({s.excessVotes > 0 ? "+" : ""}
+          {s.excessVotes} คะแนน)
         </div>
       </div>
       {s.isSuspicious && (
         <div className="text-red-600 text-xs font-bold bg-red-50 rounded px-2 py-1 mt-1">
-          Suspicious: small party got excess votes matching winner's ballot #
+          น่าสงสัย: พรรคเล็กได้คะแนนเกินปกติ ตรงกับเบอร์ผู้ชนะ สส.เขต
         </div>
       )}
       {!s.isSmallParty && (
         <div className="text-gray-400 text-xs italic">
-          Matched party is not small — less likely spillover
+          พรรคที่ตรงเบอร์ไม่ใช่พรรคเล็ก — โอกาสกระสุนหล่นต่ำ
         </div>
       )}
     </div>
