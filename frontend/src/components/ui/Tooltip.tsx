@@ -7,17 +7,6 @@ interface Props {
   data: ElectionData;
 }
 
-function CandidateImage({ src }: { src: string }) {
-  if (!src) return null;
-  return (
-    <img
-      src={src}
-      alt=""
-      className="w-12 h-12 rounded-md object-cover border border-gray-200"
-    />
-  );
-}
-
 export function Tooltip({ areaCode, rect, view, data }: Props) {
   const area = data.areas[areaCode];
   if (!area) return null;
@@ -71,28 +60,22 @@ function ConstituencyTooltip({
 
   return (
     <div className="space-y-1">
-      <div className="flex gap-2.5">
-        <CandidateImage src={c.winnerImage} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span
-              className="w-3 h-3 rounded-sm inline-block shrink-0"
-              style={{ backgroundColor: wp?.color }}
-            />
-            <span className="font-medium truncate">{c.winnerCandidateName}</span>
-          </div>
-          <div className="text-gray-500 text-xs">{wp?.name}</div>
-          <div className="text-gray-700 text-xs">
-            {c.winnerVotes.toLocaleString()} votes ({c.winnerPct}%)
-          </div>
+      <div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="w-3 h-3 rounded-sm inline-block shrink-0"
+            style={{ backgroundColor: wp?.color }}
+          />
+          <span className="font-medium truncate">{c.winnerCandidateName}</span>
+        </div>
+        <div className="text-gray-500 text-xs">{wp?.name}</div>
+        <div className="text-gray-700 text-xs">
+          {c.winnerVotes.toLocaleString()} votes ({c.winnerPct}%)
         </div>
       </div>
-      <div className="text-gray-500 text-xs border-t pt-1 mt-1 flex gap-2 items-center">
-        <CandidateImage src={c.runnerUpImage} />
-        <div>
-          <div>Runner-up: {c.runnerUpCandidateName} ({rp?.name})</div>
-          <div>{c.runnerUpVotes.toLocaleString()} ({c.runnerUpPct}%)</div>
-        </div>
+      <div className="text-gray-500 text-xs border-t pt-1 mt-1">
+        <div>Runner-up: {c.runnerUpCandidateName} ({rp?.name})</div>
+        <div>{c.runnerUpVotes.toLocaleString()} ({c.runnerUpPct}%)</div>
       </div>
       <div className="text-gray-400 text-xs">
         Margin: {c.margin} pts · Turnout: {c.turnout}%
@@ -151,19 +134,16 @@ function SpilloverTooltip({
 
   return (
     <div className="space-y-1.5">
-      <div className="flex gap-2.5">
-        <CandidateImage src={c.winnerImage} />
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-gray-500">
-            Winner: {c.winnerCandidateName} ({wp?.name})
-          </div>
-          <div className="mt-0.5">
-            <span className="text-gray-600">Ballot #{s.candidateBallotNumber}</span>{" "}
-            →{" "}
-            <span className="font-medium">
-              PL #{s.candidateBallotNumber} ({mp?.name || s.matchedPartyName})
-            </span>
-          </div>
+      <div>
+        <div className="text-xs text-gray-500">
+          Winner: {c.winnerCandidateName} ({wp?.name})
+        </div>
+        <div className="mt-0.5">
+          <span className="text-gray-600">Ballot #{s.candidateBallotNumber}</span>{" "}
+          →{" "}
+          <span className="font-medium">
+            PL #{s.candidateBallotNumber} ({mp?.name || s.matchedPartyName})
+          </span>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-x-3 text-xs">

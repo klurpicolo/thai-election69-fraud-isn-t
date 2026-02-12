@@ -13,13 +13,11 @@ export interface Party {
 export interface ConstituencyResult {
   winnerPartyCode: string;
   winnerCandidateName: string;
-  winnerImage: string;
   winnerBallotNumber: number;
   winnerVotes: number;
   winnerPct: number;
   runnerUpPartyCode: string;
   runnerUpCandidateName: string;
-  runnerUpImage: string;
   runnerUpVotes: number;
   runnerUpPct: number;
   margin: number;
