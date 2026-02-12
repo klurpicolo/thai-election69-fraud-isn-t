@@ -37,10 +37,6 @@ jobs:
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
-      - name: Precompute election data
-        working-directory: frontend
-        run: pnpm run precompute
-
       - name: Build
         working-directory: frontend
         run: pnpm run build
