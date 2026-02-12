@@ -48,7 +48,8 @@ export function getAreaColor(
       const s = area.spillover;
       if (!s || !s.isSmallParty) return "#E5E7EB";
       if (s.excessPct <= 0) return "#FAFAFA";
-      const intensity = Math.min(s.excessPct / 3, 1);
+      // Log scale so outliers pop: log(1+x)/log(1+cap)
+      const intensity = Math.min(Math.log1p(s.excessPct) / Math.log1p(3), 1);
       if (usePartyColor) {
         const partyColor =
           data.parties[area.constituency.winnerPartyCode]?.color ?? "#DC2626";

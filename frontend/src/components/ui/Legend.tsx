@@ -20,80 +20,54 @@ const MAJOR_PARTIES = [
 ];
 
 export function Legend({ view, data, usePartyColor, onTogglePartyColor }: Props) {
-  const isSpillover = view === "spillover";
-
   return (
-    <div className="grid">
-      {/* Both legends overlap in the same grid cell; only the active one is visible */}
-      <div
-        className={`col-start-1 row-start-1 transition-opacity ${
-          isSpillover ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <SpilloverLegend
-          usePartyColor={usePartyColor}
-          onToggle={onTogglePartyColor}
-        />
+    <div className="flex flex-col gap-1.5">
+      {/* Party swatches — always visible */}
+      <div className="flex flex-col gap-0.5">
+        {MAJOR_PARTIES.map((code) => {
+          const party = data.parties[code];
+          if (!party) return null;
+          return (
+            <div key={code} className="flex items-center gap-1 text-xs">
+              <span
+                className="w-2.5 h-2.5 rounded-sm inline-block border border-gray-200"
+                style={{ backgroundColor: party.color }}
+              />
+              <span className="text-gray-700">{party.name}</span>
+            </div>
+          );
+        })}
       </div>
-      <div
-        className={`col-start-1 row-start-1 flex items-center transition-opacity ${
-          !isSpillover ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="flex flex-wrap gap-3 justify-center">
-          {MAJOR_PARTIES.map((code) => {
-            const party = data.parties[code];
-            if (!party) return null;
-            return (
-              <div key={code} className="flex items-center gap-1.5 text-xs">
-                <span
-                  className="w-3 h-3 rounded-sm inline-block border border-gray-200"
-                  style={{ backgroundColor: party.color }}
-                />
-                <span className="text-gray-700">{party.name}</span>
-              </div>
-            );
-          })}
+
+      {/* Spillover gradient + toggle — only in spillover view */}
+      {view === "spillover" && (
+        <div className="flex flex-col gap-1.5 border-t border-gray-200 pt-1.5 mt-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-gray-500">No match</span>
+            <span className="w-4 h-3 rounded bg-gray-200 border border-gray-300" />
+            <span className="text-xs text-gray-500">Low</span>
+            <div
+              className="w-20 h-3 rounded border border-gray-300"
+              style={{
+                background: usePartyColor
+                  ? "linear-gradient(to right, #FFFFFF, #888888)"
+                  : "linear-gradient(to right, #FEE2E2, #DC2626)",
+              }}
+            />
+            <span className="text-xs text-gray-500">High (+3%+)</span>
+          </div>
+          <button
+            onClick={onTogglePartyColor}
+            className={`text-xs px-2 py-0.5 rounded-full border transition-colors self-start ${
+              usePartyColor
+                ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+                : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            {usePartyColor ? "Party colors" : "Red gradient"} — toggle
+          </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SpilloverLegend({
-  usePartyColor,
-  onToggle,
-}: {
-  usePartyColor: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-gray-500">No match / Large party</span>
-        <span className="w-5 h-4 rounded bg-gray-200 border border-gray-300" />
-        <span className="text-xs text-gray-500">No excess</span>
-        <div
-          className="w-32 h-4 rounded border border-gray-300"
-          style={{
-            background: usePartyColor
-              ? "linear-gradient(to right, #FFFFFF, #888888)"
-              : "linear-gradient(to right, #FEE2E2, #DC2626)",
-          }}
-        />
-        <span className="text-xs text-gray-500">High excess (+3%+)</span>
-      </div>
-      <button
-        onClick={onToggle}
-        className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-          usePartyColor
-            ? "bg-indigo-50 border-indigo-300 text-indigo-700"
-            : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
-        }`}
-      >
-        {usePartyColor ? "Colored by party" : "Colored by red gradient"}
-        {" — click to toggle"}
-      </button>
+      )}
     </div>
   );
 }

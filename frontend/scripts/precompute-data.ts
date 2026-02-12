@@ -4,10 +4,11 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA = resolve(__dirname, "../../data/smiley159");
+const DATA_ROOT = resolve(__dirname, "../../data");
 const OUT = resolve(__dirname, "../public/data");
 
-function loadJson(name: string) {
-  return JSON.parse(readFileSync(resolve(DATA, name), "utf-8"));
+function loadJson(name: string, base = DATA) {
+  return JSON.parse(readFileSync(resolve(base, name), "utf-8"));
 }
 
 // ── Load raw data ───────────────────────────────────────────────────
@@ -16,6 +17,9 @@ const commonData = loadJson("common-data.json");
 const candidateData = loadJson("candidate-data.json");
 const constResults = loadJson("all-areas-constituency-results.json");
 const plResults = loadJson("all-areas-party-list-results.json");
+
+// Candidate portrait images (from ECT)
+const infoMpCandidates: any[] = loadJson("info_mp_candidate.json", DATA_ROOT);
 
 // ── Build lookups ───────────────────────────────────────────────────
 const partyByCode: Record<string, any> = {};
@@ -33,6 +37,14 @@ for (const c of candidateData.candidates) {
 const areaNameByCode: Record<string, string> = {};
 for (const a of commonData.areas) {
   areaNameByCode[a.code] = a.name;
+}
+
+// ── Build candidate name → image URL lookup ─────────────────────────
+const imageByName: Record<string, string> = {};
+for (const item of infoMpCandidates) {
+  if (item.mp_app_name && item.image_url) {
+    imageByName[item.mp_app_name] = item.image_url;
+  }
 }
 
 // ── Compute party-list national averages ────────────────────────────
@@ -100,14 +112,22 @@ for (const areaMeta of commonData.areas) {
   const candidateName = (c: any) =>
     c ? `${c.prefix || ""}${c.firstName} ${c.lastName}`.trim() : "";
 
+  const candidateImage = (c: any): string => {
+    if (!c) return "";
+    const name = candidateName(c);
+    return imageByName[name] || "";
+  };
+
   const constituency = {
     winnerPartyCode: winner?.partyCode || "",
     winnerCandidateName: candidateName(winnerCandidate),
+    winnerImage: candidateImage(winnerCandidate),
     winnerBallotNumber: winnerCandidate?.number || 0,
     winnerVotes: winner?.voteTotal || 0,
     winnerPct: winner?.votePercent || 0,
     runnerUpPartyCode: runnerUp?.partyCode || "",
     runnerUpCandidateName: candidateName(runnerUpCandidate),
+    runnerUpImage: candidateImage(runnerUpCandidate),
     runnerUpVotes: runnerUp?.voteTotal || 0,
     runnerUpPct: runnerUp?.votePercent || 0,
     margin: +((winner?.votePercent || 0) - (runnerUp?.votePercent || 0)).toFixed(2),

@@ -1,9 +1,9 @@
 import type { ViewMode } from "../../lib/types";
 
 const views: { key: ViewMode; label: string }[] = [
-  { key: "constituency", label: "Constituency Winner" },
-  { key: "partyList", label: "Party List Winner" },
-  { key: "spillover", label: "Spillover Analysis" },
+  { key: "constituency", label: "Constituency" },
+  { key: "partyList", label: "Party List" },
+  { key: "spillover", label: "Spillover" },
 ];
 
 interface Props {
@@ -13,15 +13,15 @@ interface Props {
 
 export function ViewToggle({ current, onChange }: Props) {
   return (
-    <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+    <div className="flex gap-1 p-0.5 bg-gray-100 rounded-md mt-1.5">
       {views.map(({ key, label }) => (
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
             current === key
               ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              : "text-gray-500 hover:text-gray-900"
           }`}
         >
           {label}
