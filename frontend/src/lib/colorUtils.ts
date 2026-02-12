@@ -46,16 +46,20 @@ export function getAreaColor(
 
     case "spillover": {
       const s = area.spillover;
-      if (!s || !s.isSmallParty) return "#E5E7EB";
-      if (s.excessPct <= 0) return "#FAFAFA";
+      const partyColor =
+        data.parties[area.constituency.winnerPartyCode]?.color ?? "#999999";
+      if (s.excessPct <= 0) {
+        // slightly more visible tint or near-white
+        return usePartyColor ? interpolateColor("#FFFFFF", partyColor, 0.25) : "#FAFAFA";
+      }
       // Log scale so outliers pop: log(1+x)/log(1+cap)
-      const intensity = Math.min(Math.log1p(s.excessPct) / Math.log1p(3), 1);
+      // Suspicious areas: range from 0.35 → 1.0 so they clearly stand out from the faint tints above
+      const rawIntensity = Math.min(Math.log1p(s.excessPct) / Math.log1p(3), 1);
+      const intensity = 0.35 + rawIntensity * 0.65;
       if (usePartyColor) {
-        const partyColor =
-          data.parties[area.constituency.winnerPartyCode]?.color ?? "#DC2626";
         return interpolateColor("#FFFFFF", partyColor, intensity);
       }
-      return interpolateColor("#FEE2E2", "#DC2626", intensity);
+      return interpolateColor("#FEE2E2", "#DC2626", rawIntensity);
     }
   }
 }
