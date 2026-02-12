@@ -56,7 +56,7 @@ export default function App() {
       <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-4 py-3 pointer-events-auto">
           <h1 className="text-base font-bold text-gray-900 leading-tight">
-            Thailand Election 69 — Fraud Analysis
+            Thailand Election 69 อภินิหาร หรือไม่?
           </h1>
           <ViewToggle current={view} onChange={setView} />
         </div>

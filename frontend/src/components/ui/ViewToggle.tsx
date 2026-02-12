@@ -1,9 +1,9 @@
 import type { ViewMode } from "../../lib/types";
 
 const views: { key: ViewMode; label: string }[] = [
-  { key: "constituency", label: "Constituency" },
-  { key: "partyList", label: "Party List" },
-  { key: "spillover", label: "Spillover" },
+  { key: "constituency", label: "สส.เขต" },
+  { key: "partyList", label: "บช.รายชื่อ" },
+  { key: "spillover", label: "กระสุนหล่น หรือไม่?" },
 ];
 
 interface Props {

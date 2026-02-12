@@ -64,7 +64,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor }: Props)
                 : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
             }`}
           >
-            {usePartyColor ? "Party colors" : "Red gradient"} — toggle
+            {usePartyColor ? "แสดงสีพรรค" : "ไล่เชดสี"} — กดเพื่อเปลี่ยน
           </button>
         </div>
       )}
