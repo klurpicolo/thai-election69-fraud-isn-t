@@ -15,14 +15,24 @@ export function ElectionMap({ data, view, usePartyColor, onAreaHover, onAreaClic
   const svgRef = useRef<SVGSVGElement | null>(null);
   const areaRectsRef = useRef<Map<string, SVGRectElement>>(new Map());
 
-  // Load SVG once
+  // Keep latest callbacks in refs so event listeners always use current values
+  const onAreaHoverRef = useRef(onAreaHover);
+  const onAreaClickRef = useRef(onAreaClick);
+  onAreaHoverRef.current = onAreaHover;
+  onAreaClickRef.current = onAreaClick;
+
+  // Load SVG once and attach event listeners
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let cancelled = false;
+
     fetch(`${import.meta.env.BASE_URL}map.svg`)
       .then((r) => r.text())
       .then((svgText) => {
+        if (cancelled) return;
+
         container.innerHTML = svgText;
         const svg = container.querySelector("svg");
         if (!svg) return;
@@ -46,7 +56,49 @@ export function ElectionMap({ data, view, usePartyColor, onAreaHover, onAreaClic
 
         // Apply initial colors
         applyColors();
+
+        // Event delegation
+        function findAreaGroup(target: EventTarget | null): SVGGElement | null {
+          let el = target as Element | null;
+          while (el && el !== svg) {
+            if (
+              el.tagName === "g" &&
+              el.id?.startsWith("area-") &&
+              /^area-\d+$/.test(el.id)
+            ) {
+              return el as SVGGElement;
+            }
+            el = el.parentElement;
+          }
+          return null;
+        }
+
+        svg.addEventListener("mousemove", (e: MouseEvent) => {
+          const g = findAreaGroup(e.target);
+          if (g) {
+            const rect = g.querySelector("rect");
+            const domRect = rect?.getBoundingClientRect() ?? null;
+            onAreaHoverRef.current(svgIdToAreaCode(g.id), domRect);
+          } else {
+            onAreaHoverRef.current(null, null);
+          }
+        });
+
+        svg.addEventListener("click", (e: MouseEvent) => {
+          const g = findAreaGroup(e.target);
+          onAreaClickRef.current(g ? svgIdToAreaCode(g.id) : null);
+        });
+
+        svg.addEventListener("mouseleave", () => {
+          onAreaHoverRef.current(null, null);
+        });
+
+        svg.style.cursor = "pointer";
       });
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -60,58 +112,6 @@ export function ElectionMap({ data, view, usePartyColor, onAreaHover, onAreaClic
   useEffect(() => {
     applyColors();
   }, [applyColors]);
-
-  // Event delegation for hover/click
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
-
-    function findAreaGroup(target: EventTarget | null): SVGGElement | null {
-      let el = target as Element | null;
-      while (el && el !== svg) {
-        if (
-          el.tagName === "g" &&
-          el.id?.startsWith("area-") &&
-          /^area-\d+$/.test(el.id)
-        ) {
-          return el as SVGGElement;
-        }
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    function handleMouseMove(e: MouseEvent) {
-      const g = findAreaGroup(e.target);
-      if (g) {
-        const rect = g.querySelector("rect");
-        const domRect = rect?.getBoundingClientRect() ?? null;
-        onAreaHover(svgIdToAreaCode(g.id), domRect);
-      } else {
-        onAreaHover(null, null);
-      }
-    }
-
-    function handleClick(e: MouseEvent) {
-      const g = findAreaGroup(e.target);
-      onAreaClick(g ? svgIdToAreaCode(g.id) : null);
-    }
-
-    function handleMouseLeave() {
-      onAreaHover(null, null);
-    }
-
-    svg.addEventListener("mousemove", handleMouseMove);
-    svg.addEventListener("click", handleClick);
-    svg.addEventListener("mouseleave", handleMouseLeave);
-    svg.style.cursor = "pointer";
-
-    return () => {
-      svg.removeEventListener("mousemove", handleMouseMove);
-      svg.removeEventListener("click", handleClick);
-      svg.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, [onAreaHover, onAreaClick]);
 
   return (
     <div
