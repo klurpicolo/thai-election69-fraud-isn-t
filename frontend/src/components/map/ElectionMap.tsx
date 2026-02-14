@@ -140,9 +140,9 @@ export function ElectionMap({
           return null;
         }
 
-        // Hover
+        // Hover (skip synthetic mouse events from touch)
         svg.addEventListener("mousemove", (e: MouseEvent) => {
-          if (isPanningRef.current) return;
+          if (isPanningRef.current || recentlyTouched) return;
           const g = findAreaGroup(e.target);
           if (g) {
             const rect = g.querySelector("rect");
@@ -238,11 +238,15 @@ export function ElectionMap({
         let lastTouchDist = 0;
         let lastTouchCenter = { x: 0, y: 0 };
         let touchMoved = false;
+        let recentlyTouched = false;
+        let recentlyTouchedTimer: ReturnType<typeof setTimeout> | null = null;
 
         svg.addEventListener(
           "touchstart",
           (e: TouchEvent) => {
             touchMoved = false;
+            recentlyTouched = true;
+            if (recentlyTouchedTimer) clearTimeout(recentlyTouchedTimer);
             if (e.touches.length === 1) {
               panStartRef.current = {
                 x: e.touches[0].clientX,
@@ -330,6 +334,10 @@ export function ElectionMap({
             if (touchMoved) {
               e.preventDefault();
             }
+            // Clear recentlyTouched after synthetic mouse events have fired (~500ms)
+            recentlyTouchedTimer = setTimeout(() => {
+              recentlyTouched = false;
+            }, 500);
           }
         });
 
