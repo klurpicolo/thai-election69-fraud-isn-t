@@ -15,22 +15,38 @@ export function Tooltip({ areaCode, rect, view, data }: Props) {
 
   const getParty: GetParty = (code) => data.parties[code];
 
-  const x = rect.left + rect.width / 2;
-  const tooltipHeight = 200;
-  const showBelow = rect.top < tooltipHeight + 16;
+  const isMobile = window.innerWidth < 640;
 
-  const style: React.CSSProperties = {
-    position: "fixed",
-    left: Math.max(16, Math.min(x, window.innerWidth - 180)),
-    top: showBelow ? rect.bottom + 8 : rect.top - 8,
-    transform: showBelow ? "translateX(-50%)" : "translate(-50%, -100%)",
-    zIndex: 50,
-  };
+  // On mobile, show as a bottom sheet; on desktop, show near the hovered area
+  const style: React.CSSProperties = isMobile
+    ? {
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 50,
+      }
+    : (() => {
+        const x = rect.left + rect.width / 2;
+        const tooltipHeight = 200;
+        const showBelow = rect.top < tooltipHeight + 16;
+        return {
+          position: "fixed" as const,
+          left: Math.max(16, Math.min(x, window.innerWidth - 180)),
+          top: showBelow ? rect.bottom + 8 : rect.top - 8,
+          transform: showBelow ? "translateX(-50%)" : "translate(-50%, -100%)",
+          zIndex: 50,
+        };
+      })();
 
   return (
     <div
       style={style}
-      className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 pointer-events-none max-w-[420px] text-sm"
+      className={
+        isMobile
+          ? "bg-white rounded-t-xl shadow-xl border-t border-gray-200 p-4 max-h-[50vh] overflow-y-auto text-sm"
+          : "bg-white rounded-lg shadow-xl border border-gray-200 p-3 pointer-events-none max-w-[420px] text-sm"
+      }
     >
       <div className="font-bold text-gray-900 mb-1.5 text-base">
         {area.areaName}
@@ -137,9 +153,9 @@ function SpilloverTooltip({
 
   return (
     <div className="space-y-2">
-      {/* Two-column layout: left = winner, right = matched party-list */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        {/* Left: สส.เขต (ผู้ชนะ) */}
+      {/* Two-column on desktop, stacked on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        {/* สส.เขต (ผู้ชนะ) */}
         <div className="space-y-1">
           <div className="text-gray-400 font-medium">ผู้ชนะ สส.เขต</div>
           <div className="flex items-center gap-1.5">
@@ -154,8 +170,8 @@ function SpilloverTooltip({
           </div>
         </div>
 
-        {/* Right: บช.รายชื่อ (พรรคที่ตรงเบอร์) */}
-        <div className="space-y-1 border-l border-gray-200 pl-3">
+        {/* บช.รายชื่อ (พรรคที่ตรงเบอร์) */}
+        <div className="space-y-1 sm:border-l border-t sm:border-t-0 border-gray-200 sm:pl-3 pt-2 sm:pt-0">
           <div className="text-gray-400 font-medium">บช.รายชื่อ ผู้รับโชค</div>
           <div className="flex items-center gap-1.5">
             <span

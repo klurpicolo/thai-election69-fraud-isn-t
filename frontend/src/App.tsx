@@ -41,8 +41,15 @@ export default function App() {
   );
 
   const handleAreaClick = useCallback(
-    (_areaCode: string | null) => {
-      // On mobile, click acts like hover
+    (areaCode: string | null, rect: DOMRect | null) => {
+      // On mobile, tap acts like hover (show/hide tooltip)
+      if (areaCode && rect) {
+        setHovered((prev) =>
+          prev?.areaCode === areaCode ? null : { areaCode, rect }
+        );
+      } else {
+        setHovered(null);
+      }
     },
     []
   );
@@ -91,7 +98,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setPanelOpen((v) => !v)}
-              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors text-sm"
+              className="shrink-0 w-9 h-9 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors text-base sm:text-sm"
               aria-label={panelOpen ? "Hide controls" : "Show controls"}
             >
               {panelOpen ? "✕" : "☰"}

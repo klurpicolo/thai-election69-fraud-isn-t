@@ -18,10 +18,10 @@ export function ViewToggle({ current, onChange }: Props) {
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+          className={`px-3 py-2 sm:py-1 rounded text-xs font-medium transition-colors ${
             current === key
               ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-900"
+              : "text-gray-500 hover:text-gray-900 active:text-gray-900"
           }`}
         >
           {label}

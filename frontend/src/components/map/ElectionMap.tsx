@@ -7,7 +7,7 @@ interface Props {
   view: ViewMode;
   usePartyColor: boolean;
   onAreaHover: (areaCode: string | null, rect: DOMRect | null) => void;
-  onAreaClick: (areaCode: string | null) => void;
+  onAreaClick: (areaCode: string | null, rect: DOMRect | null) => void;
 }
 
 // Original SVG viewBox dimensions
@@ -157,11 +157,17 @@ export function ElectionMap({
           onAreaHoverRef.current(null, null);
         });
 
-        // Click
+        // Click (tap on mobile)
         svg.addEventListener("click", (e: MouseEvent) => {
           if (isPanningRef.current) return;
           const g = findAreaGroup(e.target);
-          onAreaClickRef.current(g ? svgIdToAreaCode(g.id) : null);
+          if (g) {
+            const rect = g.querySelector("rect");
+            const domRect = rect?.getBoundingClientRect() ?? null;
+            onAreaClickRef.current(svgIdToAreaCode(g.id), domRect);
+          } else {
+            onAreaClickRef.current(null, null);
+          }
         });
 
         // Wheel zoom
@@ -228,7 +234,107 @@ export function ElectionMap({
           document.addEventListener("mouseup", onMouseUp);
         });
 
+        // Touch: pan (1 finger) and pinch-to-zoom (2 fingers)
+        let lastTouchDist = 0;
+        let lastTouchCenter = { x: 0, y: 0 };
+        let touchMoved = false;
+
+        svg.addEventListener(
+          "touchstart",
+          (e: TouchEvent) => {
+            touchMoved = false;
+            if (e.touches.length === 1) {
+              panStartRef.current = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY,
+              };
+            } else if (e.touches.length === 2) {
+              e.preventDefault();
+              const dx = e.touches[0].clientX - e.touches[1].clientX;
+              const dy = e.touches[0].clientY - e.touches[1].clientY;
+              lastTouchDist = Math.hypot(dx, dy);
+              lastTouchCenter = {
+                x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+              };
+            }
+          },
+          { passive: false }
+        );
+
+        svg.addEventListener(
+          "touchmove",
+          (e: TouchEvent) => {
+            if (e.touches.length === 1 && zoomRef.current > 1) {
+              // Single-finger pan (only when zoomed in)
+              e.preventDefault();
+              touchMoved = true;
+              const touch = e.touches[0];
+              const rect = svg!.getBoundingClientRect();
+              const vb = viewBoxRef.current;
+              const dx =
+                ((panStartRef.current.x - touch.clientX) / rect.width) * vb.w;
+              const dy =
+                ((panStartRef.current.y - touch.clientY) / rect.height) * vb.h;
+
+              let newX = vb.x + dx;
+              let newY = vb.y + dy;
+              newX = Math.max(
+                ORIG_VB.x,
+                Math.min(newX, ORIG_VB.x + ORIG_VB.w - vb.w)
+              );
+              newY = Math.max(
+                ORIG_VB.y,
+                Math.min(newY, ORIG_VB.y + ORIG_VB.h - vb.h)
+              );
+
+              viewBoxRef.current = { ...vb, x: newX, y: newY };
+              updateViewBox();
+              panStartRef.current = { x: touch.clientX, y: touch.clientY };
+              onAreaHoverRef.current(null, null);
+            } else if (e.touches.length === 2) {
+              // Pinch zoom
+              e.preventDefault();
+              touchMoved = true;
+              const dx = e.touches[0].clientX - e.touches[1].clientX;
+              const dy = e.touches[0].clientY - e.touches[1].clientY;
+              const dist = Math.hypot(dx, dy);
+
+              if (lastTouchDist > 0) {
+                const scale = dist / lastTouchDist;
+                const rect = svg!.getBoundingClientRect();
+                const vb = viewBoxRef.current;
+                const cx =
+                  vb.x +
+                  ((lastTouchCenter.x - rect.left) / rect.width) * vb.w;
+                const cy =
+                  vb.y +
+                  ((lastTouchCenter.y - rect.top) / rect.height) * vb.h;
+                applyZoom(zoomRef.current * scale, cx, cy);
+              }
+
+              lastTouchDist = dist;
+              lastTouchCenter = {
+                x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+              };
+            }
+          },
+          { passive: false }
+        );
+
+        svg.addEventListener("touchend", (e: TouchEvent) => {
+          if (e.touches.length === 0) {
+            lastTouchDist = 0;
+            // If it was a tap (not a pan/pinch), let the click handler fire
+            if (touchMoved) {
+              e.preventDefault();
+            }
+          }
+        });
+
         svg.style.cursor = "grab";
+        svg.style.touchAction = "none";
       });
 
     return () => {
@@ -254,18 +360,18 @@ export function ElectionMap({
         className="w-full h-full overflow-hidden"
       />
 
-      {/* Zoom controls */}
-      <div className="absolute top-2 right-2 flex flex-col gap-1">
+      {/* Zoom controls — bottom-right on mobile, top-right on desktop */}
+      <div className="absolute bottom-4 right-3 sm:bottom-auto sm:top-2 sm:right-2 flex flex-col gap-1.5">
         <button
           onClick={() => applyZoom(zoomRef.current * ZOOM_FACTOR)}
-          className="w-8 h-8 bg-white rounded shadow border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-lg font-bold leading-none"
+          className="w-10 h-10 sm:w-8 sm:h-8 bg-white rounded-lg sm:rounded shadow-md border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 flex items-center justify-center text-xl sm:text-lg font-bold leading-none"
           title="Zoom in"
         >
           +
         </button>
         <button
           onClick={() => applyZoom(zoomRef.current / ZOOM_FACTOR)}
-          className="w-8 h-8 bg-white rounded shadow border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-lg font-bold leading-none"
+          className="w-10 h-10 sm:w-8 sm:h-8 bg-white rounded-lg sm:rounded shadow-md border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 flex items-center justify-center text-xl sm:text-lg font-bold leading-none"
           title="Zoom out"
         >
           &minus;
@@ -273,10 +379,10 @@ export function ElectionMap({
         <button
           onClick={resetView}
           disabled={zoom === 1}
-          className="w-8 h-8 bg-white rounded shadow border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center text-xs font-medium leading-none disabled:opacity-30 disabled:cursor-default"
+          className="w-10 h-10 sm:w-8 sm:h-8 bg-white rounded-lg sm:rounded shadow-md border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 flex items-center justify-center text-sm sm:text-xs font-medium leading-none disabled:opacity-30 disabled:cursor-default"
           title="Reset view"
         >
-          <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor">
+          <svg viewBox="0 0 16 16" className="w-5 h-5 sm:w-4 sm:h-4" fill="currentColor">
             <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 1 1 .908-.418A6 6 0 1 1 8 2v1z" />
             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
           </svg>
