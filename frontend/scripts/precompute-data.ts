@@ -184,8 +184,71 @@ for (const areaMeta of commonData.areas) {
   };
 }
 
+// ── Ballot match analysis ────────────────────────────────────────────
+// For each target ballot number, find the small party with that party-list number,
+// then see how much party-list vote they got in each area vs their national average.
+// Also record which constituency candidate has that same ballot number in each area.
+
+const TARGET_NUMBERS = [1, 2, 3, 4, 5, 7, 8, 13];
+
+// Build index: candidatesByArea[areaCode][ballotNumber] = candidate
+const candidatesByArea: Record<string, Record<number, any>> = {};
+for (const c of candidateData.candidates) {
+  if (!candidatesByArea[c.areaCode]) candidatesByArea[c.areaCode] = {};
+  candidatesByArea[c.areaCode][c.number] = c;
+}
+
+const ballotMatch: Record<string, any> = {};
+
+for (const num of TARGET_NUMBERS) {
+  const targetParty = partyByNumber[num];
+  if (!targetParty) continue;
+
+  const partyCode = targetParty.code;
+  const natAvg = nationalAvg[partyCode] || 0;
+  const areaEntries: Record<string, any> = {};
+
+  for (const areaMeta of commonData.areas) {
+    const areaCode = areaMeta.code;
+    const plArea = plByArea[areaCode];
+    if (!plArea) continue;
+
+    // Find this party's party-list vote in this area
+    const plEntry = plArea.entries.find((e: any) => e.partyCode === partyCode);
+    const plVotes = plEntry?.voteTotal || 0;
+    const plPct = plEntry?.votePercent || 0;
+    const excessPct = plPct - natAvg;
+
+    // Find the constituency candidate with this ballot number in this area
+    const cand = candidatesByArea[areaCode]?.[num];
+    const constArea = constByArea[areaCode];
+    const constEntry = constArea?.entries.find(
+      (e: any) => e.candidateCode === cand?.code
+    );
+
+    const candidateName = (c: any) =>
+      c ? `${c.prefix || ""}${c.firstName} ${c.lastName}`.trim() : "";
+
+    areaEntries[areaCode] = {
+      plVotes,
+      plPct: +plPct.toFixed(2),
+      excessPct: +excessPct.toFixed(4),
+      candPartyCode: cand?.partyCode || "",
+      candName: candidateName(cand),
+      candVotes: constEntry?.voteTotal || 0,
+    };
+  }
+
+  ballotMatch[String(num)] = {
+    partyCode,
+    partyName: targetParty.name,
+    nationalAvgPct: +natAvg.toFixed(4),
+    areas: areaEntries,
+  };
+}
+
 // ── Write output ────────────────────────────────────────────────────
-const output = { parties, areas };
+const output = { parties, areas, ballotMatch };
 const json = JSON.stringify(output);
 writeFileSync(resolve(OUT, "election-data.json"), json);
 

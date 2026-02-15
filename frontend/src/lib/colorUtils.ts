@@ -1,4 +1,4 @@
-import type { ViewMode, ElectionData } from "./types";
+import type { ViewMode, ElectionData, BallotMatchNumber } from "./types";
 
 export function svgIdToAreaCode(svgId: string): string {
   // "area-1033" → "AREA-1033"
@@ -31,7 +31,8 @@ export function getAreaColor(
   svgId: string,
   view: ViewMode,
   data: ElectionData,
-  usePartyColor?: boolean
+  usePartyColor?: boolean,
+  ballotMatchData?: BallotMatchNumber,
 ): string {
   const areaCode = svgIdToAreaCode(svgId);
   const area = data.areas[areaCode];
@@ -58,6 +59,22 @@ export function getAreaColor(
       const intensity = 0.35 + rawIntensity * 0.65;
       if (usePartyColor) {
         return interpolateColor("#FFFFFF", partyColor, intensity);
+      }
+      return interpolateColor("#FEE2E2", "#DC2626", rawIntensity);
+    }
+
+    case "ballotMatch": {
+      if (!ballotMatchData) return "#CCCCCC";
+      const entry = ballotMatchData.areas[areaCode];
+      if (!entry || entry.excessPct <= 0) {
+        const candColor = data.parties[entry?.candPartyCode]?.color ?? "#999999";
+        return usePartyColor ? interpolateColor("#FFFFFF", candColor, 0.25) : "#FAFAFA";
+      }
+      const rawIntensity = Math.min(Math.log1p(entry.excessPct) / Math.log1p(3), 1);
+      const intensity = 0.35 + rawIntensity * 0.65;
+      if (usePartyColor) {
+        const candColor = data.parties[entry.candPartyCode]?.color ?? "#999999";
+        return interpolateColor("#FFFFFF", candColor, intensity);
       }
       return interpolateColor("#FEE2E2", "#DC2626", rawIntensity);
     }

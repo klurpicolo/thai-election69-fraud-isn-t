@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from "react";
-import type { ViewMode, ElectionData } from "../../lib/types";
+import type { ViewMode, ElectionData, BallotMatchNumber } from "../../lib/types";
 import { getAreaColor, svgIdToAreaCode } from "../../lib/colorUtils";
 
 interface Props {
@@ -8,6 +8,8 @@ interface Props {
   usePartyColor: boolean;
   onAreaHover: (areaCode: string | null, rect: DOMRect | null) => void;
   onAreaClick: (areaCode: string | null, rect: DOMRect | null) => void;
+  ballotMatchData?: BallotMatchNumber;
+  ballotMatchThreshold?: number;
 }
 
 // Original SVG viewBox dimensions
@@ -22,6 +24,8 @@ export function ElectionMap({
   usePartyColor,
   onAreaHover,
   onAreaClick,
+  ballotMatchData,
+  ballotMatchThreshold = 0,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -353,9 +357,18 @@ export function ElectionMap({
 
   const applyColors = useCallback(() => {
     for (const [svgId, rect] of areaRectsRef.current) {
-      rect.setAttribute("fill", getAreaColor(svgId, view, data, usePartyColor));
+      rect.setAttribute("fill", getAreaColor(svgId, view, data, usePartyColor, ballotMatchData));
+      // Apply opacity threshold for ballot match view
+      if (view === "ballotMatch" && ballotMatchData && ballotMatchThreshold > 0) {
+        const areaCode = svgIdToAreaCode(svgId);
+        const entry = ballotMatchData.areas[areaCode];
+        const excess = entry?.excessPct ?? 0;
+        rect.setAttribute("opacity", excess >= ballotMatchThreshold ? "1" : "0.08");
+      } else {
+        rect.setAttribute("opacity", "1");
+      }
     }
-  }, [view, data, usePartyColor]);
+  }, [view, data, usePartyColor, ballotMatchData, ballotMatchThreshold]);
 
   useEffect(() => {
     applyColors();

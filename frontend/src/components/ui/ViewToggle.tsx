@@ -4,6 +4,7 @@ const views: { key: ViewMode; label: string }[] = [
   { key: "constituency", label: "สส.เขต" },
   { key: "partyList", label: "บช.รายชื่อ" },
   { key: "spillover", label: "กระสุนหล่น หรือไม่?" },
+  { key: "ballotMatch", label: "เบอร์ตรง" },
 ];
 
 interface Props {

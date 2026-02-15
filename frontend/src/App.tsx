@@ -21,6 +21,8 @@ export default function App() {
   const { data, loading } = useElectionData();
   const [view, setView] = useState<ViewMode>("spillover");
   const [usePartyColor, setUsePartyColor] = useState(true);
+  const [selectedBallotNumber, setSelectedBallotNumber] = useState("1");
+  const [ballotMatchThreshold, setBallotMatchThreshold] = useState(1.0);
   const isMobile = useIsMobile();
   const [panelOpen, setPanelOpen] = useState(!isMobile);
   const [showAbout, setShowAbout] = useState(false);
@@ -75,6 +77,8 @@ export default function App() {
         usePartyColor={usePartyColor}
         onAreaHover={handleAreaHover}
         onAreaClick={handleAreaClick}
+        ballotMatchData={data.ballotMatch?.[selectedBallotNumber]}
+        ballotMatchThreshold={ballotMatchThreshold}
       />
 
       {/* Top-left panel: title + view toggle + legend */}
@@ -114,6 +118,11 @@ export default function App() {
               data={data}
               usePartyColor={usePartyColor}
               onTogglePartyColor={() => setUsePartyColor((v) => !v)}
+              selectedBallotNumber={selectedBallotNumber}
+              onBallotNumberChange={setSelectedBallotNumber}
+              ballotMatch={data.ballotMatch}
+              ballotMatchThreshold={ballotMatchThreshold}
+              onBallotMatchThresholdChange={setBallotMatchThreshold}
             />
           </div>
         )}
@@ -126,6 +135,7 @@ export default function App() {
           rect={hovered.rect}
           view={view}
           data={data}
+          ballotMatchData={data.ballotMatch?.[selectedBallotNumber]}
         />
       )}
     </div>

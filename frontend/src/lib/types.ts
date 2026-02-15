@@ -1,4 +1,4 @@
-export type ViewMode = "constituency" | "partyList" | "spillover";
+export type ViewMode = "constituency" | "partyList" | "spillover" | "ballotMatch";
 
 export interface Party {
   code: string;
@@ -61,7 +61,24 @@ export interface AreaData {
   spillover: SpilloverData | null;
 }
 
+export interface BallotMatchAreaEntry {
+  plVotes: number;
+  plPct: number;
+  excessPct: number;
+  candPartyCode: string;
+  candName: string;
+  candVotes: number;
+}
+
+export interface BallotMatchNumber {
+  partyCode: string;
+  partyName: string;
+  nationalAvgPct: number;
+  areas: Record<string, BallotMatchAreaEntry>;
+}
+
 export interface ElectionData {
   parties: Record<string, Party>;
   areas: Record<string, AreaData>;
+  ballotMatch?: Record<string, BallotMatchNumber>;
 }
