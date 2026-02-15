@@ -11,6 +11,8 @@ const descriptions: Record<ViewMode, string> = {
     "Showing which party won the most party-list votes in each area.",
   spillover:
     'Testing the "number spillover" hypothesis',
+  ballotMatch:
+    "Comparing party-list votes for small parties whose number matches a constituency candidate's ballot number.",
   // spillover:
   //   'Testing the "number spillover" hypothesis: when voters are told to vote for candidate #N, ' +
   //   "they may also write #N on the party-list paper, accidentally boosting whichever small party " +
