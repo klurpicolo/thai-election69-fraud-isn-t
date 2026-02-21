@@ -1,4 +1,5 @@
 import type { ViewMode, ElectionData, AreaData, Party, BallotMatchNumber } from "../../lib/types";
+import { useLanguage, usePartyName } from "../../lib/i18n";
 
 interface Props {
   areaCode: string;
@@ -9,6 +10,11 @@ interface Props {
 }
 
 type GetParty = (code: string) => Party | undefined;
+
+function PName({ party }: { party: Party | undefined }) {
+  const name = usePartyName(party);
+  return <>{name}</>;
+}
 
 export function Tooltip({ areaCode, rect, view, data, ballotMatchData }: Props) {
   const area = data.areas[areaCode];
@@ -76,6 +82,7 @@ function ConstituencyTooltip({
   area: AreaData;
   getParty: GetParty;
 }) {
+  const { t } = useLanguage();
   const c = area.constituency;
   const wp = getParty(c.winnerPartyCode);
   const rp = getParty(c.runnerUpPartyCode);
@@ -90,17 +97,17 @@ function ConstituencyTooltip({
           />
           <span className="font-medium truncate">{c.winnerCandidateName}</span>
         </div>
-        <div className="text-gray-500 text-xs">{wp?.name}</div>
+        <div className="text-gray-500 text-xs"><PName party={wp} /></div>
         <div className="text-gray-700 text-xs">
-          {c.winnerVotes.toLocaleString()} คะแนน ({c.winnerPct}%)
+          {c.winnerVotes.toLocaleString()} {t.votes} ({c.winnerPct}%)
         </div>
       </div>
       <div className="text-gray-500 text-xs border-t pt-1 mt-1">
-        <div>อันดับ 2: {c.runnerUpCandidateName} ({rp?.name})</div>
+        <div>{t.rank2}: {c.runnerUpCandidateName} (<PName party={rp} />)</div>
         <div>{c.runnerUpVotes.toLocaleString()} ({c.runnerUpPct}%)</div>
       </div>
       <div className="text-gray-400 text-xs">
-        ห่าง: {c.margin} จุด · ผู้มาใช้สิทธิ: {c.turnout}%
+        {t.margin}: {c.margin} {t.points} · {t.turnout}: {c.turnout}%
       </div>
     </div>
   );
@@ -126,7 +133,7 @@ function PartyListTooltip({
               className="w-2.5 h-2.5 rounded-sm inline-block"
               style={{ backgroundColor: p?.color }}
             />
-            <span className="flex-1">{p?.name}</span>
+            <span className="flex-1"><PName party={p} /></span>
             <span className="text-gray-600 tabular-nums">
               {e.votes.toLocaleString()} ({e.pct}%)
             </span>
@@ -144,67 +151,67 @@ function SpilloverTooltip({
   area: AreaData;
   getParty: GetParty;
 }) {
+  const { t } = useLanguage();
   const s = area.spillover;
   const c = area.constituency;
   const wp = getParty(c.winnerPartyCode);
 
   if (!s) {
-    return <div className="text-gray-500">ไม่มีข้อมูลกระสุนหล่น</div>;
+    return <div className="text-gray-500">{t.noSpilloverData}</div>;
   }
 
   const mp = getParty(s.matchedPartyCode);
-  const matchedName = mp?.name ?? s.matchedPartyName;
 
   return (
     <div className="space-y-2">
       {/* Two-column on desktop, stacked on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        {/* สส.เขต (ผู้ชนะ) */}
+        {/* Constituency winner */}
         <div className="space-y-1">
-          <div className="text-gray-400 font-medium">ผู้ชนะ สส.เขต</div>
+          <div className="text-gray-400 font-medium">{t.constituencyWinner}</div>
           <div className="flex items-center gap-1.5">
             <span
               className="w-3 h-3 rounded-sm inline-block shrink-0"
               style={{ backgroundColor: wp?.color }}
             />
-            <span className="font-medium text-gray-900">เบอร์ {s.candidateBallotNumber} {c.winnerCandidateName} จากพรรค{wp?.name}</span>
+            <span className="font-medium text-gray-900">{t.ballotNumber} {s.candidateBallotNumber} {c.winnerCandidateName} {t.fromParty} <PName party={wp} /></span>
           </div>
           <div className="text-gray-600">
-            {c.winnerVotes.toLocaleString()} คะแนน ({c.winnerPct}%)
+            {c.winnerVotes.toLocaleString()} {t.votes} ({c.winnerPct}%)
           </div>
         </div>
 
-        {/* บช.รายชื่อ (พรรคที่ตรงเบอร์) */}
+        {/* Party list lucky beneficiary */}
         <div className="space-y-1 sm:border-l border-t sm:border-t-0 border-gray-200 sm:pl-3 pt-2 sm:pt-0">
-          <div className="text-gray-400 font-medium">บช.รายชื่อ ผู้รับโชค</div>
+          <div className="text-gray-400 font-medium">{t.partyListLucky}</div>
           <div className="flex items-center gap-1.5">
             <span
               className="w-3 h-3 rounded-sm inline-block shrink-0"
               style={{ backgroundColor: mp?.color ?? "#999" }}
             />
-            <span className="font-medium text-gray-900">เบอร์ {s.candidateBallotNumber} {matchedName}</span>
+            <span className="font-medium text-gray-900">{t.ballotNumber} {s.candidateBallotNumber} <PName party={mp} /></span>
           </div>
           <div className="text-gray-600">
-            คะแนนในเขต: <span className="font-medium">{s.matchedPartyPct}%</span>
+            {t.votesInArea}: <span className="font-medium">{s.matchedPartyPct}%</span>
           </div>
           <div className="text-gray-600">
-            ค่าเฉลี่ยประเทศ: {s.matchedPartyNationalAvgPct.toFixed(2)}%
+            {t.nationalAvgTooltip}: {s.matchedPartyNationalAvgPct.toFixed(2)}%
           </div>
           <div className={`font-bold ${s.excessPct > 0 ? "text-red-600" : "text-green-600"}`}>
-            ส่วนต่าง: {s.excessPct > 0 ? "+" : ""}{s.excessPct.toFixed(2)}%
-            {" "}({s.excessVotes > 0 ? "+" : ""}{s.excessVotes} คะแนน)
+            {t.excess}: {s.excessPct > 0 ? "+" : ""}{s.excessPct.toFixed(2)}%
+            {" "}({s.excessVotes > 0 ? "+" : ""}{s.excessVotes} {t.votes})
           </div>
         </div>
       </div>
 
       {s.isSuspicious && (
         <div className="text-red-600 text-xs font-bold bg-red-50 rounded px-2 py-1">
-          น่าสงสัย หรือไม่?: พรรคเล็กได้คะแนนเกินปกติ ตรงกับเบอร์ผู้ชนะ สส.เขต
+          {t.suspicious}
         </div>
       )}
       {!s.isSmallParty && (
         <div className="text-gray-400 text-xs italic">
-          พรรคที่ตรงเบอร์ไม่ใช่พรรคเล็ก — โอกาสกระสุนหล่นต่ำ
+          {t.notSmallParty}
         </div>
       )}
     </div>
@@ -220,9 +227,10 @@ function BallotMatchTooltip({
   getParty: GetParty;
   ballotMatchData: BallotMatchNumber;
 }) {
+  const { t } = useLanguage();
   const entry = ballotMatchData.areas[area.code];
   if (!entry) {
-    return <div className="text-gray-500">ไม่มีข้อมูลเบอร์ตรง</div>;
+    return <div className="text-gray-500">{t.noBallotData}</div>;
   }
 
   const smallParty = getParty(ballotMatchData.partyCode);
@@ -233,40 +241,40 @@ function BallotMatchTooltip({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         {/* Party-list side: small party */}
         <div className="space-y-1">
-          <div className="text-gray-400 font-medium">บช.รายชื่อ (พรรคตรงเบอร์)</div>
+          <div className="text-gray-400 font-medium">{t.partyListMatchingNumber}</div>
           <div className="flex items-center gap-1.5">
             <span
               className="w-3 h-3 rounded-sm inline-block shrink-0"
               style={{ backgroundColor: smallParty?.color ?? "#999" }}
             />
-            <span className="font-medium text-gray-900">{ballotMatchData.partyName}</span>
+            <span className="font-medium text-gray-900"><PName party={smallParty} /></span>
           </div>
           <div className="text-gray-600">
-            คะแนนในเขต: <span className="font-medium">{entry.plVotes.toLocaleString()} ({entry.plPct}%)</span>
+            {t.votesInArea}: <span className="font-medium">{entry.plVotes.toLocaleString()} ({entry.plPct}%)</span>
           </div>
           <div className="text-gray-600">
-            ค่าเฉลี่ยประเทศ: {ballotMatchData.nationalAvgPct.toFixed(2)}%
+            {t.nationalAvgTooltip}: {ballotMatchData.nationalAvgPct.toFixed(2)}%
           </div>
           <div className={`font-bold ${entry.excessPct > 0 ? "text-red-600" : "text-green-600"}`}>
-            ส่วนต่าง: {entry.excessPct > 0 ? "+" : ""}{entry.excessPct.toFixed(2)}%
+            {t.excess}: {entry.excessPct > 0 ? "+" : ""}{entry.excessPct.toFixed(2)}%
           </div>
         </div>
 
         {/* Constituency side: candidate with same number */}
         <div className="space-y-1 sm:border-l border-t sm:border-t-0 border-gray-200 sm:pl-3 pt-2 sm:pt-0">
-          <div className="text-gray-400 font-medium">สส.เขต เบอร์เดียวกัน</div>
+          <div className="text-gray-400 font-medium">{t.sameNumberConstituency}</div>
           <div className="flex items-center gap-1.5">
             <span
               className="w-3 h-3 rounded-sm inline-block shrink-0"
               style={{ backgroundColor: candParty?.color ?? "#999" }}
             />
-            <span className="font-medium text-gray-900">{entry.candName || "ไม่มีผู้สมัคร"}</span>
+            <span className="font-medium text-gray-900">{entry.candName || t.noCandidate}</span>
           </div>
           {candParty && (
-            <div className="text-gray-600">พรรค{candParty.name}</div>
+            <div className="text-gray-600">{t.party}: <PName party={candParty} /></div>
           )}
           <div className="text-gray-600">
-            {entry.candVotes.toLocaleString()} คะแนน
+            {entry.candVotes.toLocaleString()} {t.votes}
           </div>
         </div>
       </div>

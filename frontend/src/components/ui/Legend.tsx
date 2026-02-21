@@ -1,4 +1,5 @@
-import type { ViewMode, ElectionData, BallotMatchNumber } from "../../lib/types";
+import type { ViewMode, ElectionData, BallotMatchNumber, Party } from "../../lib/types";
+import { useLanguage, usePartyName } from "../../lib/i18n";
 
 interface Props {
   view: ViewMode;
@@ -27,7 +28,14 @@ const MAJOR_PARTIES = [
 
 const BALLOT_NUMBERS = ["1", "2", "3", "4", "5", "7", "8", "13"];
 
+function PartyName({ party }: { party: Party | undefined }) {
+  const name = usePartyName(party);
+  return <>{name}</>;
+}
+
 export function Legend({ view, data, usePartyColor, onTogglePartyColor, selectedBallotNumber, onBallotNumberChange, ballotMatch, ballotMatchThreshold, onBallotMatchThresholdChange }: Props) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex flex-col gap-1.5">
       {/* Party swatches — always visible */}
@@ -41,7 +49,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
                 className="w-2.5 h-2.5 rounded-sm inline-block border border-gray-200"
                 style={{ backgroundColor: party.color }}
               />
-              <span className="text-gray-700">{party.name}</span>
+              <span className="text-gray-700"><PartyName party={party} /></span>
             </div>
           );
         })}
@@ -51,9 +59,9 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
       {view === "spillover" && (
         <div className="flex flex-col gap-1.5 border-t border-gray-200 pt-1.5 mt-0.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-gray-500">No match</span>
+            <span className="text-xs text-gray-500">{t.noMatch}</span>
             <span className="w-4 h-3 rounded bg-gray-200 border border-gray-300" />
-            <span className="text-xs text-gray-500">Low</span>
+            <span className="text-xs text-gray-500">{t.low}</span>
             <div
               className="w-20 h-3 rounded border border-gray-300"
               style={{
@@ -62,7 +70,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
                   : "linear-gradient(to right, #FEE2E2, #DC2626)",
               }}
             />
-            <span className="text-xs text-gray-500">High (+3%+)</span>
+            <span className="text-xs text-gray-500">{t.high}</span>
           </div>
           <button
             onClick={onTogglePartyColor}
@@ -72,7 +80,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
                 : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
             }`}
           >
-            {usePartyColor ? "แสดงสีพรรค" : "ไล่เชดสี"} — กดเพื่อเปลี่ยน
+            {usePartyColor ? t.showPartyColor : t.showGradient} — {t.clickToToggle}
           </button>
         </div>
       )}
@@ -80,7 +88,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
       {/* Ballot match — number picker + gradient */}
       {view === "ballotMatch" && ballotMatch && (
         <div className="flex flex-col gap-1.5 border-t border-gray-200 pt-1.5 mt-0.5">
-          <div className="text-xs text-gray-500 font-medium">เลือกเบอร์:</div>
+          <div className="text-xs text-gray-500 font-medium">{t.selectNumber}</div>
           <div className="flex gap-1 flex-wrap">
             {BALLOT_NUMBERS.map((num) => (
               <button
@@ -98,14 +106,14 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
           </div>
           {selectedBallotNumber && ballotMatch[selectedBallotNumber] && (
             <div className="text-xs text-gray-700">
-              <span className="font-medium">{ballotMatch[selectedBallotNumber].partyName}</span>
-              {" "}(เฉลี่ยประเทศ: {ballotMatch[selectedBallotNumber].nationalAvgPct.toFixed(2)}%)
+              <span className="font-medium"><PartyName party={data.parties[ballotMatch[selectedBallotNumber].partyCode]} /></span>
+              {" "}({t.nationalAvg}: {ballotMatch[selectedBallotNumber].nationalAvgPct.toFixed(2)}%)
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-gray-500">ต่ำ/ไม่เกิน</span>
+            <span className="text-xs text-gray-500">{t.belowLabel}</span>
             <span className="w-4 h-3 rounded bg-gray-200 border border-gray-300" />
-            <span className="text-xs text-gray-500">Low</span>
+            <span className="text-xs text-gray-500">{t.low}</span>
             <div
               className="w-20 h-3 rounded border border-gray-300"
               style={{
@@ -114,13 +122,13 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
                   : "linear-gradient(to right, #FEE2E2, #DC2626)",
               }}
             />
-            <span className="text-xs text-gray-500">High (+3%+)</span>
+            <span className="text-xs text-gray-500">{t.high}</span>
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">ซ่อนเขตที่ต่ำกว่า:</span>
+              <span className="text-xs text-gray-500">{t.hideBelowLabel}</span>
               <span className="text-xs font-medium text-gray-700 tabular-nums">
-                {(ballotMatchThreshold ?? 0) > 0 ? `+${(ballotMatchThreshold ?? 0).toFixed(1)}%` : "ปิด"}
+                {(ballotMatchThreshold ?? 0) > 0 ? `+${(ballotMatchThreshold ?? 0).toFixed(1)}%` : t.off}
               </span>
             </div>
             <input
@@ -147,7 +155,7 @@ export function Legend({ view, data, usePartyColor, onTogglePartyColor, selected
                 : "bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100"
             }`}
           >
-            {usePartyColor ? "แสดงสีพรรค" : "ไล่เชดสี"} — กดเพื่อเปลี่ยน
+            {usePartyColor ? t.showPartyColor : t.showGradient} — {t.clickToToggle}
           </button>
         </div>
       )}

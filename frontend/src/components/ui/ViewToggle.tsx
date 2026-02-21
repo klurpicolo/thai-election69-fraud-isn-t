@@ -1,10 +1,12 @@
 import type { ViewMode } from "../../lib/types";
+import { useLanguage } from "../../lib/i18n";
+import type { Translations } from "../../lib/translations";
 
-const views: { key: ViewMode; label: string }[] = [
-  { key: "constituency", label: "สส.เขต" },
-  { key: "partyList", label: "บช.รายชื่อ" },
-  { key: "spillover", label: "กระสุนหล่น หรือไม่?" },
-  { key: "ballotMatch", label: "เบอร์ตรง" },
+const viewKeys: { key: ViewMode; tKey: keyof Translations }[] = [
+  { key: "constituency", tKey: "constituency" },
+  { key: "partyList", tKey: "partyList" },
+  { key: "spillover", tKey: "spillover" },
+  { key: "ballotMatch", tKey: "ballotMatch" },
 ];
 
 interface Props {
@@ -13,9 +15,10 @@ interface Props {
 }
 
 export function ViewToggle({ current, onChange }: Props) {
+  const { t } = useLanguage();
   return (
     <div className="flex gap-1 p-0.5 bg-gray-100 rounded-md mt-1.5">
-      {views.map(({ key, label }) => (
+      {viewKeys.map(({ key, tKey }) => (
         <button
           key={key}
           onClick={() => onChange(key)}
@@ -25,7 +28,7 @@ export function ViewToggle({ current, onChange }: Props) {
               : "text-gray-500 hover:text-gray-900 active:text-gray-900"
           }`}
         >
-          {label}
+          {t[tKey]}
         </button>
       ))}
     </div>

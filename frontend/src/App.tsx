@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { ViewMode } from "./lib/types";
 import { useElectionData } from "./hooks/useElectionData";
+import { useLanguage } from "./lib/i18n";
 import { ElectionMap } from "./components/map/ElectionMap";
 import { ViewToggle } from "./components/ui/ViewToggle";
 import { Tooltip } from "./components/ui/Tooltip";
@@ -19,6 +20,7 @@ function useIsMobile() {
 
 export default function App() {
   const { data, loading } = useElectionData();
+  const { lang, setLang, t } = useLanguage();
   const [view, setView] = useState<ViewMode>("spillover");
   const [usePartyColor, setUsePartyColor] = useState(true);
   const [selectedBallotNumber, setSelectedBallotNumber] = useState("1");
@@ -87,26 +89,36 @@ export default function App() {
           <div className="flex items-start justify-between gap-2">
             <div>
               <h1 className="text-base font-bold text-gray-900 leading-tight">
-                Thailand Election 69 อภินิหาร หรือไม่?
+                {t.title}
               </h1>
               <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
-                นี้เป็นเพียงการวิเคราะห์ข้อมูล ไม่ได้ชี้นำหรือกล่าวหาใคร
+                {t.subtitle}
                 {" "}
                 <button
                   onClick={() => setShowAbout(true)}
                   className="text-indigo-500 hover:text-indigo-700 underline"
                 >
-                  เกี่ยวกับ
+                  {t.aboutLink}
                 </button>
               </p>
             </div>
-            <button
-              onClick={() => setPanelOpen((v) => !v)}
-              className="shrink-0 w-9 h-9 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors text-base sm:text-sm"
-              aria-label={panelOpen ? "Hide controls" : "Show controls"}
-            >
-              {panelOpen ? "✕" : "☰"}
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setLang(lang === "th" ? "en" : "th")}
+                className="h-9 sm:h-7 px-1.5 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors text-xs font-medium"
+              >
+                <span className={lang === "th" ? "font-bold text-gray-900" : ""}>TH</span>
+                <span className="mx-0.5 text-gray-300">|</span>
+                <span className={lang === "en" ? "font-bold text-gray-900" : ""}>EN</span>
+              </button>
+              <button
+                onClick={() => setPanelOpen((v) => !v)}
+                className="w-9 h-9 sm:w-7 sm:h-7 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors text-base sm:text-sm"
+                aria-label={panelOpen ? t.hideControls : t.showControls}
+              >
+                {panelOpen ? "✕" : "☰"}
+              </button>
+            </div>
           </div>
           {panelOpen && <ViewToggle current={view} onChange={setView} />}
         </div>
